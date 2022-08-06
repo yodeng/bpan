@@ -1,10 +1,11 @@
 import os
 import sys
 import time
-import requests
+import signal
 import base64
 import hashlib
 import logging
+import requests
 import argparse
 
 import prettytable
@@ -101,7 +102,7 @@ def human_size(num):
     return "%.1f%s" % (num, 'Y')
 
 
-def ask(msg, enter=True):
+def ask_input(msg, enter=True):
     print(msg)
     if enter:
         print('Press [Enter] when you are done')
@@ -287,3 +288,62 @@ def category_decode(code=6):
     for i in cs:
         c.append(co_map.get(i.strip(), "其他"))
     return ",".join(c)
+
+
+def confirm(message="Proceed", choices=("yes", "no"), default="yes"):
+    assert default in choices, default
+    options = []
+    for option in choices:
+        if option == default:
+            options.append('[%s]' % option[0])
+        else:
+            options.append(option[0])
+    message = "%s (%s)? " % (message, '/'.join(options))
+    choices = {alt: choice
+               for choice in choices
+               for alt in [choice, choice[0]]}
+    choices[''] = default
+    while True:
+        sys.stdout.write(message)
+        sys.stdout.flush()
+        user_choice = sys.stdin.readline().strip().lower()
+        if user_choice not in choices:
+            print("Invalid choice: %s" % user_choice)
+        else:
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            return choices[user_choice]
+
+
+class TimeoutException(Exception):
+    pass
+
+
+class AuthorizationError(Exception):
+    pass
+
+
+def interrupt(signum, frame):
+    raise TimeoutException()
+
+
+def _timeout(timeout_secs, func, *args, **kwargs):
+    default_return = kwargs.pop('default_return', "")
+
+    signal.signal(signal.SIGALRM, interrupt)
+    signal.alarm(timeout_secs)
+
+    try:
+        ret = func(*args, **kwargs)
+        signal.alarm(0)
+        return ret
+    except (TimeoutException,  KeyboardInterrupt):
+        return default_return
+
+
+def ask(msg="", timeout=100):
+    sys.stdout.write(msg)
+    content = _timeout(timeout, sys.stdin.readline)
+    if not content:
+        sys.stdout.write("\n")
+    return content.strip()
