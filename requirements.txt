@@ -1,0 +1,5 @@
+Cython
+requests
+requests-toolbelt
+tqdm
+urllib3
