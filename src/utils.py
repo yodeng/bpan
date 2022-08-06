@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import requests
+import base64
 import hashlib
 import logging
 import argparse

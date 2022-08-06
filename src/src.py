@@ -12,8 +12,17 @@ from .utils import *
 
 class Authorization(object):
 
-    app_key = os.getenv("BAIDU_API_KEY", "")
-    sec_key = os.getenv("BAIDU_API_SECRET", "")
+    if os.getenv("BAIDU_API_KEY", ""):
+        app_key = os.getenv("BAIDU_API_KEY")
+    else:
+        app_key = base64.b64decode(
+            "NnFHdWRiOU5Jb1pOVlVtazNHOENBdHlMV01xcXh5R1k=".encode()).decode()
+
+    if os.getenv("BAIDU_API_SECRET", ""):
+        sec_key = os.getenv("BAIDU_API_SECRET")
+    else:
+        sec_key = base64.b64decode(
+            "bm5HdTFXUE1NVDAwR3VBdURhMjlUZFJsMXNMczdpalU=".encode()).decode()
 
     code_url = "http://openapi.baidu.com/oauth/2.0/authorize"
     code_par = {
