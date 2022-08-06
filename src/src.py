@@ -58,9 +58,12 @@ class Authorization(object):
     def get_code(self):
         self.code_par["client_id"] = self.client_id
         url = '%s?%s' % (self.code_url, urlencode(self.code_par))
-        msg = 'Please visit:\n%s\nAnd authorize this app' % url + \
-            '\nPaste the Authorization Code here within 10 minutes.'
-        self.auth_code = ask(msg).strip()
+        url = style(url, fore="blue")
+        msg = 'Please visit:\n%s\nfor Login and' % url + \
+            '\nPaste the Authorization Code here within 10 minutes.\n'
+        msg += "Authorization Code (Press [Enter] when you are done): "
+        self.auth_code = ask(msg, timeout=10*60).strip()
+        return self.auth_code
 
     def get_token(self):
         self.token_par["code"] = self.auth_code
@@ -71,6 +74,8 @@ class Authorization(object):
         if res.status_code == 200:
             self.token = res.json()
             self.store_token()
+        else:
+            raise AuthorizationError()
 
     def refresh_token(self, refresh_token=""):
         if not refresh_token:
@@ -87,6 +92,8 @@ class Authorization(object):
         if res.status_code == 200:
             self.token = res.json()
             self.store_token()
+        else:
+            raise AuthorizationError()
 
     def store_token(self, filepath=""):
         if not filepath:
@@ -102,12 +109,16 @@ class Authorization(object):
             self.token = json.load(fi)
 
     def login(self, force=False):
-        if force:
-            self.get_code()
-            self.get_token()
-        if not self.token:
-            self.get_code()
-            self.get_token()
+        if force or not self.token:
+            code = self.get_code()
+            if not code:
+                self.loger.error("No authorization code input, login error.")
+                sys.exit(1)
+            try:
+                self.get_token()
+            except:
+                self.loger.error("Invaliad code, login error.")
+                sys.exit(1)
 
     def logout(self):
         time.sleep(3)
