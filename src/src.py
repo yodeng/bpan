@@ -258,7 +258,7 @@ class Bpan(Utils):
             path = meta["path"][len(self.BASE_APP_PATH):]
             type_ = "File"
             mtime = meta["mtime"]
-            category = meta["category"]
+            category = category_decode(meta["category"])
             if not path.startswith("/"):
                 path = "/" + path
             mtime = time.strftime("%Y-%m-%d %H:%M:%S",
@@ -285,7 +285,7 @@ class Bpan(Utils):
                         path = p["path"][len(self.BASE_APP_PATH):]
                         type_ = "File"
                         mtime = p["mtime"]
-                        category = p["category"]
+                        category = category_decode(p["category"])
                     if not path.startswith("/"):
                         path = "/" + path
                     mtime = time.strftime(
