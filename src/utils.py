@@ -268,3 +268,21 @@ def parseArg():
         parser_download.add_argument('-p', "--nproc", help="if set, the download will be paralleled by process",
                                      type=int, metavar="<int>")
     return parser.parse_args()
+
+
+def category_decode(code=6):
+    code = str(code)
+    co_map = {
+        "1": "视频",
+        "2": "音频",
+        "3": "图片",
+        "4": "文档",
+        "5": "应用",
+        "6": "其他",
+        "7": "种子",
+    }
+    c = []
+    cs = code.split(",")
+    for i in cs:
+        c.append(co_map.get(i.strip(), "其他"))
+    return ",".join(c)
