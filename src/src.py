@@ -238,13 +238,12 @@ class Bpan(Utils):
             return
         return res
 
-    def _download_dir(self, outdir, nt=5, np=0):
+    async def _download_dir(self, outdir, nt=5):
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
-        if np:
-            pool = ProcessPoolExecutor(max(np, 1))
-        else:
-            pool = ThreadPoolExecutor(max(nt, 1))
+        pool = ThreadPoolExecutor(max(nt, 1))
+        tasks = []
+        loop = asyncio.get_event_loop()
         for f in self._walk_remote_dir(self.remotepath):
             rpath = f["path"]
             prefix = rpath[len(self.BASE_APP_PATH):].lstrip("/")
@@ -253,20 +252,21 @@ class Bpan(Utils):
                     outdir, prefix[prefix.index("/"):].lstrip("/"))
             else:
                 outpath = os.path.join(outdir, prefix)
-            pool.submit(self._download_file, remotepath=rpath,
-                        outpath=outpath, flist=f)
+            tasks.append(loop.run_in_executor(
+                pool, self._download_file, rpath, outpath, f))
+        await asyncio.wait(tasks)
         pool.shutdown(wait=True)
 
     @property
     def loger(self):
         return logging.getLogger()
 
-    def download(self, outdir, nt=5, np=0):
+    def download(self, outdir, nt=5):
         if self.isfile:
             self._download_file(outpath=os.path.join(
                 outdir, os.path.basename(self.remotepath)))
         elif self.isdir:
-            self._download_dir(outdir, nt, np)
+            asyncio.run(self._download_dir(outdir, nt))
 
     def list(self):
         l = []

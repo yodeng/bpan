@@ -40,8 +40,7 @@ def main():
         auth.login()
         bp = Bpan(auth.token["access_token"])
         bp.remote_path_info(remotepath, bind=True)
-        np = args.nproc or 0
-        bp.download(localdir, nt=args.threads, np=np)
+        bp.download(localdir, nt=args.threads)
 
 
 if __name__ == "__main__":
