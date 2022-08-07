@@ -5,6 +5,7 @@ import signal
 import base64
 import hashlib
 import logging
+import asyncio
 import requests
 import argparse
 
@@ -265,10 +266,8 @@ def parseArg():
                                      required=True, metavar="<file/dir>")
         parser_download.add_argument("-o", "--outdir", type=str, help="local directory for download, it will be create if not exists. required",
                                      required=True, metavar="<dir>")
-        parser_download.add_argument('-t', "--threads", help="which number of file for download in parallel by threads, default 1",
+        parser_download.add_argument('-t', "--threads", help="which number of file for download in parallel, default 1",
                                      type=int, default=1, metavar="<int>")
-        parser_download.add_argument('-p', "--nproc", help="if set, the download will be paralleled by process",
-                                     type=int, metavar="<int>")
     return parser.parse_args()
 
 

@@ -62,7 +62,7 @@ setup(
     license="MIT",
     #package_dir={PKG: "src"},
     install_requires=get_requirement(),
-    python_requires='>3.6',
+    python_requires='>=3.7',
     ext_modules=getExtension(),
     long_description=getdes(),
     long_description_content_type='text/markdown',
