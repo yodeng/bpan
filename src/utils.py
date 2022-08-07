@@ -8,6 +8,7 @@ import logging
 import asyncio
 import requests
 import argparse
+import functools
 
 import prettytable
 

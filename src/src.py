@@ -154,26 +154,26 @@ class Bpan(Utils):
         print("username: %s\nvip_type: %s\ntotal_size: %s\nused: %s" %
               (username, vip, total, used))
 
-    def _download_file(self, remotepath=None, outpath=None, flist=None, **kwargs):
-        if not remotepath:
-            remotepath = self.remotepath
-        else:
-            remotepath = self._format_path(remotepath)
-        self.loger.debug("star download %s file", remotepath)
-        params = {'path': os.path.join(self.BASE_APP_PATH, remotepath), }
-        url = self.pcsurl + "file"
-        outfile = {}
-        outfile["path"] = outpath
-        if flist:
-            outfile["size"] = flist["size"]
-            outfile["md5"] = flist["md5"]
-        else:
-            s, m = self.get_file_size(remotepath)
-            outfile["size"] = s
-            outfile["md5"] = m
-        res = self._request('file', 'download', url=url,
-                            extra_params=params, outfile=outfile, **kwargs)
-        self.loger.debug("finish download %s file", remotepath)
+    async def _download_file(self, remotepath=None, outpath=None, flist=None, **kwargs):
+        async with self.sem:
+            if not remotepath:
+                remotepath = self.remotepath
+            else:
+                remotepath = self._format_path(remotepath)
+            self.loger.debug("star download %s file", remotepath)
+            params = {'path': os.path.join(self.BASE_APP_PATH, remotepath), }
+            url = self.pcsurl + "file"
+            outfile = {}
+            outfile["path"] = outpath
+            if flist:
+                outfile["size"] = flist["size"]
+                outfile["md5"] = flist["md5"]
+            else:
+                s, m = self.get_file_size(remotepath)
+                outfile["size"] = s
+                outfile["md5"] = m
+            res = await self.loop.run_in_executor(None, functools.partial(self._request, 'file', 'download', url=url, extra_params=params, outfile=outfile, **kwargs))
+            self.loger.debug("finish download %s file", remotepath)
 
     def _format_path(self, remotepath):
         if not remotepath.startswith(self.BASE_APP_PATH):
@@ -241,9 +241,7 @@ class Bpan(Utils):
     async def _download_dir(self, outdir, nt=5):
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
-        pool = ThreadPoolExecutor(max(nt, 1))
         tasks = []
-        loop = asyncio.get_event_loop()
         for f in self._walk_remote_dir(self.remotepath):
             rpath = f["path"]
             prefix = rpath[len(self.BASE_APP_PATH):].lstrip("/")
@@ -252,21 +250,23 @@ class Bpan(Utils):
                     outdir, prefix[prefix.index("/"):].lstrip("/"))
             else:
                 outpath = os.path.join(outdir, prefix)
-            tasks.append(loop.run_in_executor(
-                pool, self._download_file, rpath, outpath, f))
+            tasks.append(self._download_file(
+                remotepath=rpath, outpath=outpath, flist=f))
         await asyncio.wait(tasks)
-        pool.shutdown(wait=True)
 
     @property
     def loger(self):
         return logging.getLogger()
 
     def download(self, outdir, nt=5):
+        self.sem = asyncio.Semaphore(nt)
+        self.loop = asyncio.get_event_loop()
         if self.isfile:
-            self._download_file(outpath=os.path.join(
-                outdir, os.path.basename(self.remotepath)))
+            self.loop.run_until_complete(self._download_file(outpath=os.path.join(
+                outdir, os.path.basename(self.remotepath))))
         elif self.isdir:
-            asyncio.run(self._download_dir(outdir, nt))
+            self.loop.run_until_complete(self._download_dir(outdir, nt))
+        self.loop.close()
 
     def list(self):
         l = []
