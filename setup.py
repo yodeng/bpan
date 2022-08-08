@@ -60,6 +60,7 @@ setup(
     version=get_version(),
     packages=[PKG],
     license="MIT",
+    url="https://github.com/yodeng/bpan",
     #package_dir={PKG: "src"},
     install_requires=get_requirement(),
     python_requires='>=3.7',
