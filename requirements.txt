@@ -4,3 +4,4 @@ requests-toolbelt
 tqdm
 urllib3
 prettytable
+asyncio

@@ -37,6 +37,14 @@ class MD5Error(Exception):
     pass
 
 
+class TimeoutException(Exception):
+    pass
+
+
+class AuthorizationError(Exception):
+    pass
+
+
 class Utils(object):
     def __init__(self, access_token):
         self.access_token = access_token
@@ -141,20 +149,47 @@ class Chunk(object):
     OneY = OneZ * OneK
 
 
-def style(string, mode='', fore='', back=''):
-    STYLE = {
-        'fore': {'black': 30, 'red': 31, 'green': 32, 'yellow': 33, 'blue': 34, 'purple': 35, 'cyan': 36, 'white': 37},
-        'back': {'black': 40, 'red': 41, 'green': 42, 'yellow': 43, 'blue': 44, 'purple': 45, 'cyan': 46, 'white': 47},
-        'mode': {'mormal': 0, 'bold': 1, 'underline': 4, 'blink': 5, 'invert': 7, 'hide': 8},
-        'default': {'end': 0},
+STYLE = {
+    "default": {
+        "end": 0
+    },
+    "back": {
+        "blue": 44,
+        "black": 40,
+        "yellow": 43,
+        "cyan": 46,
+        "purple": 45,
+        "green": 42,
+        "white": 47,
+        "red": 41
+    },
+    "fore": {
+        "blue": 34,
+        "black": 30,
+        "yellow": 33,
+        "cyan": 36,
+        "purple": 35,
+        "green": 32,
+        "white": 37,
+        "red": 31
+    },
+    "mode": {
+        "mormal": 0,
+        "hide": 8,
+        "bold": 1,
+        "invert": 7,
+        "blink": 5,
+        "underline": 4
     }
+}
+
+
+def style(string, mode='', fore='', back=''):
     mode = '%s' % STYLE["mode"].get(mode, "")
     fore = '%s' % STYLE['fore'].get(fore, "")
     back = '%s' % STYLE['back'].get(back, "")
     style = ';'.join([s for s in [mode, fore, back] if s])
-    style = '\033[%sm' % style if style else ''
-    end = '\033[%sm' % STYLE['default']['end'] if style else ''
-    return '%s%s%s' % (style, string, end)
+    return "\033[%sm%s\033[0m" % (style, string)
 
 
 def getfilemd5(filename):
@@ -313,14 +348,6 @@ def confirm(message="Proceed", choices=("yes", "no"), default="yes"):
             sys.stdout.write("\n")
             sys.stdout.flush()
             return choices[user_choice]
-
-
-class TimeoutException(Exception):
-    pass
-
-
-class AuthorizationError(Exception):
-    pass
 
 
 def interrupt(signum, frame):

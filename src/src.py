@@ -344,3 +344,34 @@ class Bpan(Utils):
         for line in l:
             tb.add_row(line)
         print(tb)
+
+
+class BPruner(object):
+
+    def __init__(self, args, auth):
+        self.auth = auth
+        self.args = args
+        auth.isLogin(msg="please login.")
+        auth.login()
+
+    @property
+    def info(self):
+        bp = Bpan(self.auth.token["access_token"])
+        bp.info()
+
+    @property
+    def list(self):
+        remotepath = self.args.path
+        bp = Bpan(self.auth.token["access_token"])
+        bp.remote_path_info(remotepath, bind=True)
+        bp.list()
+
+    ls = list
+
+    @property
+    def download(self):
+        remotepath = self.args.input
+        localdir = self.args.outdir
+        bp = Bpan(self.auth.token["access_token"])
+        bp.remote_path_info(remotepath, bind=True)
+        bp.download(localdir, nt=self.args.threads)
