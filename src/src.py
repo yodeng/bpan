@@ -3,11 +3,31 @@
 
 import os
 import sys
-import pdb
 import json
 import requests
+import asyncio
+import base64
+import time
+import logging
+import functools
 
-from .utils import *
+import prettytable
+
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
+
+from .utils import (
+    ask,
+    style,
+    human_size,
+    category_decode,
+    AuthorizationError,
+    PathError,
+    InvalidToken,
+    Utils,
+)
 
 
 class Authorization(object):
@@ -116,7 +136,7 @@ class Authorization(object):
                 sys.exit(1)
             try:
                 self.get_token()
-            except:
+            except Exception:
                 self.loger.error("Invaliad code, login error.")
                 sys.exit(1)
 

@@ -2,20 +2,13 @@ import os
 import sys
 import time
 import signal
-import base64
 import hashlib
 import logging
-import asyncio
 import requests
 import argparse
-import functools
-
-import prettytable
 
 from tqdm import tqdm
 from requests_toolbelt import MultipartEncoder
-
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 from ._version import __version__
 
