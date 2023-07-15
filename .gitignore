@@ -1,5 +1,6 @@
 *py[cod]
 *.c
+*.so
 __pycache__/
 tmp/
 build/
