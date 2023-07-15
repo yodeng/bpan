@@ -270,8 +270,8 @@ class Bpan(Utils):
                     outdir, prefix[prefix.index("/"):].lstrip("/"))
             else:
                 outpath = os.path.join(outdir, prefix)
-            tasks.append(self._download_file(
-                remotepath=rpath, outpath=outpath, flist=f))
+            tasks.append(asyncio.create_task(self._download_file(
+                remotepath=rpath, outpath=outpath, flist=f)))
         await asyncio.wait(tasks)
 
     @property
