@@ -10,6 +10,7 @@ import argparse
 from tqdm import tqdm
 from requests_toolbelt import MultipartEncoder
 
+from ._log import Formatter
 from ._version import __version__
 
 log = logging.getLogger(__name__)
@@ -119,20 +120,16 @@ def ask_input(msg, enter=True):
 
 
 def loger(logfile=None, level="info"):
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
     if level.lower() == "info":
         logger.setLevel(logging.INFO)
-        f = logging.Formatter(
-            '[%(levelname)s %(asctime)s] %(message)s')
     elif level.lower() == "debug":
         logger.setLevel(logging.DEBUG)
-        f = logging.Formatter(
-            '[%(levelname)s %(threadName)s %(asctime)s %(funcName)s(%(lineno)d)] %(message)s')
     if logfile is None:
-        h = logging.StreamHandler(sys.stdout)
+        h = logging.StreamHandler()
     else:
         h = logging.FileHandler(logfile, mode='w')
-    h.setFormatter(f)
+    h.setFormatter(Formatter())
     logger.addHandler(h)
     return logger
 
@@ -148,45 +145,10 @@ class Chunk(object):
     OneY = OneZ * OneK
 
 
-STYLE = {
-    "default": {
-        "end": 0
-    },
-    "back": {
-        "blue": 44,
-        "black": 40,
-        "yellow": 43,
-        "cyan": 46,
-        "purple": 45,
-        "green": 42,
-        "white": 47,
-        "red": 41
-    },
-    "fore": {
-        "blue": 34,
-        "black": 30,
-        "yellow": 33,
-        "cyan": 36,
-        "purple": 35,
-        "green": 32,
-        "white": 37,
-        "red": 31
-    },
-    "mode": {
-        "mormal": 0,
-        "hide": 8,
-        "bold": 1,
-        "invert": 7,
-        "blink": 5,
-        "underline": 4
-    }
-}
-
-
 def style(string, mode='', fore='', back=''):
-    mode = '%s' % STYLE["mode"].get(mode, "")
-    fore = '%s' % STYLE['fore'].get(fore, "")
-    back = '%s' % STYLE['back'].get(back, "")
+    mode = '%s' % Formatter.mode.get(mode, "")
+    fore = '%s' % Formatter.f_color.get(fore, "")
+    back = '%s' % Formatter.b_color.get(back, "")
     style = ';'.join([s for s in [mode, fore, back] if s])
     return "\033[%sm%s\033[0m" % (style, string)
 
@@ -217,13 +179,15 @@ def downchunks(api, params, outfile):
     if os.path.isfile(filename):
         offset = os.path.getsize(filename)
         if offset == filesize:
+            if filemd5 != getfilemd5(filename):
+                raise MD5Error("MD5 check Error %s" % filename)
             return
         headers = {"Range": "bytes={}-".format(offset)}
     md5 = hashlib.md5()
     with tqdm(total=int(filesize), initial=offset, unit='', ascii=True, unit_scale=True) as bar:
         bar.set_description(filename)
         with requests.get(api, params=params, headers=headers, stream=True) as res:
-            with open(filename, offset and "ab" or "wb") as fo:
+            with open(filename, "ab") as fo:
                 for chunk in res.iter_content(chunk_size=_chunk_size):
                     if chunk:
                         fo.write(chunk)
@@ -278,12 +242,12 @@ def parseArg():
     parser_list.add_argument(
         "path", type=str, help="remote path", default="/", nargs="?", metavar="<path>")
     parser_download = subparsers.add_parser(
-        'download', help="download file or directory from netdisk to local directory.")
+        'download', help="download file or directory from netdisk to local path.")
     parser_download.add_argument("-i", "--input", type=str, help="input file or directory of remote path to download, required",
                                  required=True, metavar="<file/dir>")
     parser_download.add_argument("-o", "--outdir", type=str, help="local directory for download, it will be create if not exists. required",
                                  required=True, metavar="<dir>")
-    parser_download.add_argument('-t', "--threads", help="which number of file for download in parallel, default 1",
+    parser_download.add_argument('-t', "--threads", help="number of files download in parallel, default 1",
                                  type=int, default=1, metavar="<int>")
     return parser.parse_args()
 

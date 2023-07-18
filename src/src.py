@@ -374,12 +374,10 @@ class BPruner(object):
         auth.isLogin(msg="please login.")
         auth.login()
 
-    @property
     def info(self):
         bp = Bpan(self.auth.token["access_token"])
         bp.info()
 
-    @property
     def list(self):
         remotepath = self.args.path
         bp = Bpan(self.auth.token["access_token"])
@@ -388,7 +386,6 @@ class BPruner(object):
 
     ls = list
 
-    @property
     def download(self):
         remotepath = self.args.input
         localdir = self.args.outdir

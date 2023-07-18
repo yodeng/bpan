@@ -1,5 +1,5 @@
-from .src import Authorization, Bpan, BPruner
 from .utils import loger, parseArg
+from .src import Authorization, Bpan, BPruner
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
     for actions in ["info", "ls", "list", "download"]:
         if args.mode == actions:
             bprun = BPruner(args, auth)
-            getattr(bprun, actions)
+            getattr(bprun, actions)()
 
 
 if __name__ == "__main__":
