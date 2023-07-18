@@ -2,22 +2,18 @@ import os
 import sys
 import time
 import signal
-import base64
 import hashlib
 import logging
-import asyncio
 import requests
 import argparse
-import functools
-
-import prettytable
 
 from tqdm import tqdm
 from requests_toolbelt import MultipartEncoder
 
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
 from ._version import __version__
+
+log = logging.getLogger(__name__)
+
 
 try:
     from urllib import urlencode
@@ -84,7 +80,10 @@ class Utils(object):
             response = requests.post(api, data=data, **kwargs)
         else:
             if outfile:
-                downchunks(api, params, outfile)
+                try:
+                    downchunks(api, params, outfile)
+                except MD5Error as e:
+                    log.warning(e)
                 return
             else:
                 response = requests.get(api, params=params, **kwargs)
