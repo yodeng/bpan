@@ -261,48 +261,30 @@ def get_fastest_pcs_server():
 
 
 def parseArg():
-    subargs = ["login", "download", "info", "logout", "list", "ls"]
-    main_parser = argparse.ArgumentParser(
-        description="baidu netdisk command-line utils.",)
-    mode_parser = main_parser.add_argument_group("Commands options")
-    mode_parser.add_argument("mode",  metavar="{%s}" % ",".join(
-        subargs), help="command to run.", choices=subargs)
-    args = main_parser.parse_args(sys.argv[1:2])
-    mode = args.mode
-    if mode == "login":
-        des = "login baidu user count."
-    if mode == "logout":
-        des = "logout baidu user count."
-    elif mode == "info":
-        des = "show logined baidu netdisk information and exit."
-    elif mode in ["list", "ls"]:
-        des = "list remote netdisk file or directory."
-    elif mode == "download":
-        des = "download file or directory from netdisk to local directory."
     parser = argparse.ArgumentParser(
-        description=des, prog=" ".join(sys.argv[0:2]))
-    general_parser = parser.add_argument_group("General options")
-    general_parser.add_argument("mode", metavar=mode, choices=subargs)
-    general_parser.add_argument('-v', '--version',
-                                action='version', version="v" + __version__)
-    if mode == "login":
-        parser_login = parser.add_argument_group("Options")
-    if mode == "logout":
-        parser_logout = parser.add_argument_group("Options")
-    elif mode == "info":
-        parser_info = parser.add_argument_group("Options")
-    elif mode in ["list", "ls"]:
-        parser_list = parser.add_argument_group("Options")
-        parser_list.add_argument(
-            "path", type=str, help="remote path", default="/", nargs="?", metavar="<path>")
-    elif mode == "download":
-        parser_download = parser.add_argument_group("Options")
-        parser_download.add_argument("-i", "--input", type=str, help="input file or directory of remote path to download, required",
-                                     required=True, metavar="<file/dir>")
-        parser_download.add_argument("-o", "--outdir", type=str, help="local directory for download, it will be create if not exists. required",
-                                     required=True, metavar="<dir>")
-        parser_download.add_argument('-t', "--threads", help="which number of file for download in parallel, default 1",
-                                     type=int, default=1, metavar="<int>")
+        description="baidu netdisk command-line utils.",)
+    parser.add_argument("-v", '--version',
+                        action='version', version="v" + __version__)
+    subparsers = parser.add_subparsers(
+        metavar="command", dest="mode")
+    parser_login = subparsers.add_parser(
+        'login', help="login baidu netdisk account.")
+    parser_logout = subparsers.add_parser(
+        'logout', help="logout baidu netdisk account.")
+    parser_info = subparsers.add_parser(
+        'info', help="show logined baidu netdisk information and exit.")
+    parser_list = subparsers.add_parser(
+        'list', aliases=["ls"], help="list remote netdisk file or directory.")
+    parser_list.add_argument(
+        "path", type=str, help="remote path", default="/", nargs="?", metavar="<path>")
+    parser_download = subparsers.add_parser(
+        'download', help="download file or directory from netdisk to local directory.")
+    parser_download.add_argument("-i", "--input", type=str, help="input file or directory of remote path to download, required",
+                                 required=True, metavar="<file/dir>")
+    parser_download.add_argument("-o", "--outdir", type=str, help="local directory for download, it will be create if not exists. required",
+                                 required=True, metavar="<dir>")
+    parser_download.add_argument('-t', "--threads", help="which number of file for download in parallel, default 1",
+                                 type=int, default=1, metavar="<int>")
     return parser.parse_args()
 
 
